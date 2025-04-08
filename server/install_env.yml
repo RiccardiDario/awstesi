@@ -1,0 +1,71 @@
+- name: Installa Docker, Compose, Python e librerie scientifiche
+  hosts: all         # ✅ Target: tutti gli host definiti nell'inventory (es. [ec2])
+  become: true       # ✅ Esegui ogni task con privilegi di root
+  tasks:
+    # 📦 Aggiorna la lista dei pacchetti disponibili
+    - name: Aggiorna la cache apt
+      apt:
+        update_cache: true
+        
+    - name: Installa pacchetti di base
+      apt:
+        name:
+          - python3
+          - python3-pip
+          - apt-transport-https  # Supporto HTTPS per apt
+          - ca-certificates      # Verifica certificati SSL
+          - curl                 # Necessario per scaricare chiavi GPG
+          - gnupg                # Per gestire chiavi GPG
+          - lsb-release          # Per identificare la distribuzione
+        state: present
+
+    - name: Aggiungi chiave GPG di Docker
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Aggiungi repository Docker
+      apt_repository:
+        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable"
+        state: present
+        filename: docker
+
+    - name: Aggiorna cache apt dopo aggiunta repo
+      apt:
+        update_cache: true
+
+    - name: Installa Docker e Docker Compose
+      apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+
+    - name: Abilita e avvia Docker
+      service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Aggiungi utente corrente al gruppo docker
+      user:
+        name: "{{ ansible_user }}"
+        groups: docker
+        append: true
+
+    - name: Installa pacchetti Python via apt
+      apt:
+        name:
+          - python3-numpy
+          - python3-pandas
+          - python3-matplotlib
+          - python3-psutil
+        state: present
+
+    - name: Installa rsync
+      apt:
+        name: rsync
+        state: present

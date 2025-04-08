@@ -1,0 +1,19 @@
+#
+# NOTE: This file is generated automatically. Modify ssh_config.template instead
+#
+
+Host sin-post-quantum-test-ec2-server # dev
+    Hostname 176.34.96.166
+    User core
+    Port 65522
+    IdentityFile /home/dario/awstesi/server/id_ed25519
+
+Host *
+    StrictHostKeyChecking no
+    UserKnownHostsFile /dev/null
+    IdentitiesOnly yes
+    Compression yes
+    ServerAliveInterval 60
+
+Match all
+    Include ~/.ssh/config.plugin

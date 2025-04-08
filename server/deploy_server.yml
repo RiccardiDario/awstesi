@@ -1,0 +1,11 @@
+- name: Copia progetto WebAppPostQuantumServer su macchina EC2
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Copia progetto WebAppPostQuantumServer in /home/ubuntu
+      synchronize:
+        src: ./WebAppPostQuantumServer/
+        dest: /home/ubuntu/WebAppPostQuantumServer/
+        recursive: yes
+        delete: no

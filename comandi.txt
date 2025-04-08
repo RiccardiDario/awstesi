@@ -1,0 +1,1 @@
+ansible-playbook -i inventoryserver.ini deploy_server.yml
