@@ -1,1 +1,19 @@
+Eseguire questi comandi nella cartella server:
+Per connetterti alla macchina aws tramite ssh:
+ssh -F ssh_config_server.dev sin-post-quantum-test-ec2-server
+
+Installare i paccchetti necessari al server. 
+ansible-playbook -i inventoryserver.ini install_env.yml
+
+Copia del progetto nella macchina AWS:
 ansible-playbook -i inventoryserver.ini deploy_server.yml
+
+Eseguire questi comandi nella cartella client:
+Per connetterti alla macchina aws tramite ssh:
+ssh -F ssh_config_client.dev sin-post-quantum-test-ec2-client
+
+Installare i paccchetti necessari al client:
+ansible-playbook -i inventoryclient.ini install_env.yml
+
+Copia del progetto nella macchina AWS:
+ansible-playbook -i inventoryclient.ini deploy_client.yml

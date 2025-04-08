@@ -1,40 +1,51 @@
-- name: Installa Docker, Compose, Python e librerie scientifiche
-  hosts: all         # ✅ Target: tutti gli host definiti nell'inventory (es. [ec2])
-  become: true       # ✅ Esegui ogni task con privilegi di root
+- name: Installa Docker, Compose, Python e librerie scientifiche  # Nome del playbook
+  hosts: all         # Target: tutti gli host dell'inventory
+  become: true       # Esegui i task come superutente (sudo)
+  gather_facts: false  # ❗Disabilita la raccolta automatica delle info di sistema
+                       # Perché? La macchina non ha Python installato
+                       # Lo installeremo manualmente, poi riattiveremo i facts
+
   tasks:
-    # 📦 Aggiorna la lista dei pacchetti disponibili
-    - name: Aggiorna la cache apt
+    - name: Installa Python manualmente (raw)  # Comando raw eseguito senza Python
+      raw: |
+        apt update && apt install -y python3
+      register: install_python  # Salva l'output nel registro (non obbligatorio)
+
+    - name: Assicura che Python sia disponibile  # Riattiva la raccolta info (facts)
+      setup: {}  # Da qui in poi possiamo usare ansible_facts
+
+    - name: Aggiorna la cache apt  # Aggiorna la lista pacchetti
       apt:
         update_cache: true
-        
-    - name: Installa pacchetti di base
+
+    - name: Installa pacchetti di base  # Installa Python, pip e strumenti base
       apt:
         name:
           - python3
           - python3-pip
-          - apt-transport-https  # Supporto HTTPS per apt
-          - ca-certificates      # Verifica certificati SSL
-          - curl                 # Necessario per scaricare chiavi GPG
-          - gnupg                # Per gestire chiavi GPG
-          - lsb-release          # Per identificare la distribuzione
+          - apt-transport-https
+          - ca-certificates
+          - curl
+          - gnupg
+          - lsb-release
         state: present
 
-    - name: Aggiungi chiave GPG di Docker
+    - name: Aggiungi chiave GPG di Docker  # Aggiunge chiave per il repo Docker
       apt_key:
         url: https://download.docker.com/linux/ubuntu/gpg
         state: present
 
-    - name: Aggiungi repository Docker
+    - name: Aggiungi repository Docker  # Aggiunge il repo Docker per apt
       apt_repository:
         repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable"
         state: present
         filename: docker
 
-    - name: Aggiorna cache apt dopo aggiunta repo
+    - name: Aggiorna cache apt dopo aggiunta repo  # Aggiorna ancora i pacchetti
       apt:
         update_cache: true
 
-    - name: Installa Docker e Docker Compose
+    - name: Installa Docker e Docker Compose  # Installa Docker e i componenti
       apt:
         name:
           - docker-ce
@@ -44,19 +55,19 @@
           - docker-compose-plugin
         state: present
 
-    - name: Abilita e avvia Docker
+    - name: Abilita e avvia Docker  # Avvia Docker e lo abilita al boot
       service:
         name: docker
         state: started
         enabled: true
 
-    - name: Aggiungi utente corrente al gruppo docker
+    - name: Aggiungi utente corrente al gruppo docker  # Permette uso Docker senza sudo
       user:
         name: "{{ ansible_user }}"
         groups: docker
         append: true
 
-    - name: Installa pacchetti Python via apt
+    - name: Installa pacchetti Python via apt  # Installa librerie scientifiche Python
       apt:
         name:
           - python3-numpy
@@ -65,7 +76,7 @@
           - python3-psutil
         state: present
 
-    - name: Installa rsync
+    - name: Installa rsync  # Utile per sincronizzazione file
       apt:
         name: rsync
         state: present

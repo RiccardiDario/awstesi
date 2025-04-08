@@ -3,9 +3,9 @@
   become: true
 
   tasks:
-    - name: Copia progetto WebAppPostQuantumServer in /home/ubuntu
+    - name: Copia progetto WebAppPostQuantumServer in /core/ubuntu
       synchronize:
         src: ./WebAppPostQuantumServer/
-        dest: /home/ubuntu/WebAppPostQuantumServer/
+        dest: /home/core/WebAppPostQuantumServer/
         recursive: yes
         delete: no
