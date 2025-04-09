@@ -17,3 +17,12 @@ ansible-playbook -i inventoryclient.ini install_env.yml
 
 Copia del progetto nella macchina AWS:
 ansible-playbook -i inventoryclient.ini deploy_client.yml
+
+Per mostrare le risorse utilizzate nella macchina:
+top; htop; ps aux | grep apt
+
+Rimozione cartella con permessi di root:
+sudo rm -rf WebAppPostQuantumServer
+
+Per copiare la cartella report da AWS sul host:
+scp -i AWSPROVA.pem -r ubuntu@13.51.175.236:/home/ubuntu/WebAppPostQuantumServer/report ./report
