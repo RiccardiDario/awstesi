@@ -26,7 +26,7 @@ services:
     image: riccardidario1/nginx-webserver:latest
     container_name: nginx_pq
     ports:
-      - "4433:4433"
+      - "443:443"
       - "80:80"
     volumes:
       - certs:/etc/nginx/certs/

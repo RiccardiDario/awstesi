@@ -4,7 +4,6 @@
 *.pub
 *.crt
 *.aws-secret
-.env
 id_ed25519
 
 
