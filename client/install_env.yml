@@ -1,82 +1,64 @@
-- name: Installa Docker, Compose, Python e librerie scientifiche  # Nome del playbook
-  hosts: all         # Target: tutti gli host dell'inventory
-  become: true       # Esegui i task come superutente (sudo)
-  gather_facts: false  # ❗Disabilita la raccolta automatica delle info di sistema
-                       # Perché? La macchina non ha Python installato
-                       # Lo installeremo manualmente, poi riattiveremo i facts
+- name: Installa Docker e librerie scientifiche su Amazon Linux 2023
+  hosts: all
+  become: true
 
   tasks:
-    - name: Installa Python manualmente (raw)  # Comando raw eseguito senza Python
-      raw: |
-        apt update && apt install -y python3
-      register: install_python  # Salva l'output nel registro (non obbligatorio)
-
-    - name: Assicura che Python sia disponibile  # Riattiva la raccolta info (facts)
-      setup: {}  # Da qui in poi possiamo usare ansible_facts
-
-    - name: Aggiorna la cache apt  # Aggiorna la lista pacchetti
-      apt:
+    - name: Aggiorna la cache dnf
+      dnf:
         update_cache: true
 
-    - name: Installa pacchetti di base  # Installa Python, pip e strumenti base
-      apt:
+    - name: Installa pacchetti di base
+      dnf:
         name:
-          - python3
           - python3-pip
-          - apt-transport-https
           - ca-certificates
-          - curl
           - gnupg
-          - lsb-release
+          - rsync
         state: present
 
-    - name: Aggiungi chiave GPG di Docker  # Aggiunge chiave per il repo Docker
-      apt_key:
-        url: https://download.docker.com/linux/ubuntu/gpg
+    - name: Installa Docker
+      dnf:
+        name: docker
         state: present
 
-    - name: Aggiungi repository Docker  # Aggiunge il repo Docker per apt
-      apt_repository:
-        repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release | lower }} stable"
-        state: present
-        filename: docker
-
-    - name: Aggiorna cache apt dopo aggiunta repo  # Aggiorna ancora i pacchetti
-      apt:
-        update_cache: true
-
-    - name: Installa Docker e Docker Compose  # Installa Docker e i componenti
-      apt:
-        name:
-          - docker-ce
-          - docker-ce-cli
-          - containerd.io
-          - docker-buildx-plugin
-          - docker-compose-plugin
-        state: present
-
-    - name: Abilita e avvia Docker  # Avvia Docker e lo abilita al boot
+    - name: Abilita e avvia Docker
       service:
         name: docker
         state: started
         enabled: true
 
-    - name: Aggiungi utente corrente al gruppo docker  # Permette uso Docker senza sudo
+    - name: Aggiungi utente corrente al gruppo docker
       user:
-        name: "{{ ansible_user }}"
+        name: "{{ ansible_facts['user_id'] }}"
         groups: docker
         append: true
 
-    - name: Installa pacchetti Python via apt  # Installa librerie scientifiche Python
-      apt:
+    - name: Installa librerie scientifiche Python via pip
+      pip:
         name:
-          - python3-numpy
-          - python3-pandas
-          - python3-matplotlib
-          - python3-psutil
-        state: present
+          - numpy
+          - pandas
+          - matplotlib
+          - psutil
 
-    - name: Installa rsync  # Utile per sincronizzazione file
-      apt:
-        name: rsync
-        state: present
+    - name: Crea cartella plugin Docker Compose se non esiste
+      file:
+        path: /usr/libexec/docker/cli-plugins
+        state: directory
+        mode: '0755'
+        recurse: yes
+
+    - name: Scarica docker-compose plugin ufficiale
+      get_url:
+        url: https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64
+        dest: /usr/libexec/docker/cli-plugins/docker-compose
+        mode: '0755'
+
+    - name: Verifica che il plugin funzioni correttamente
+      command: docker compose version
+      register: compose_check
+      changed_when: false
+
+    - name: Stampa versione docker compose
+      debug:
+        msg: "{{ compose_check.stdout }}"
