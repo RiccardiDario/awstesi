@@ -6,6 +6,7 @@ Host sin-post-quantum-test-ec2-server # dev
     Hostname 176.34.96.166
     User ec2-user
     Port 22
+    IdentityFile ../id_ed25519
 
 Host *
     StrictHostKeyChecking no
