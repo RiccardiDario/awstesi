@@ -26,3 +26,6 @@ sudo rm -rf WebAppPostQuantumServer
 
 Per copiare la cartella report da AWS sul host:
 scp -i AWSPROVA.pem -r ubuntu@13.51.175.236:/home/ubuntu/WebAppPostQuantumServer/report ./report
+
+
+docker exec -it client /bin/sh
