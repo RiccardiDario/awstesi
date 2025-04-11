@@ -46,5 +46,5 @@ extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
 [alt_names]
-IP.1 = 13.51.175.236
+IP.1 = 176.34.96.166
 DNS.1 = nginx_pq
