@@ -4,9 +4,8 @@
 
 Host sin-post-quantum-test-ec2-server # dev
     Hostname 176.34.96.166
-    User core
-    Port 65522
-    IdentityFile /home/dario/awstesi/server/id_ed25519
+    User ec2-user
+    Port 22
 
 Host *
     StrictHostKeyChecking no
