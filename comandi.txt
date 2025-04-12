@@ -29,3 +29,6 @@ scp -i AWSPROVA.pem -r ubuntu@13.51.175.236:/home/ubuntu/WebAppPostQuantumServer
 
 
 docker exec -it client /bin/sh
+
+
+http://176.34.96.166:80

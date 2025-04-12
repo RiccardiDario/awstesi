@@ -2,7 +2,6 @@ import os, json
 from flask import Flask, jsonify, request
 
 app = Flask(__name__)
-ready_flag = False
 
 @app.route('/')
 def home():
