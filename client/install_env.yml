@@ -40,6 +40,7 @@
           - pandas
           - matplotlib
           - psutil
+          - flask
 
     - name: Crea cartella plugin Docker Compose se non esiste
       file:
