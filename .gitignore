@@ -4,7 +4,7 @@
 *.pub
 *.crt
 *.aws-secret
-id_ed25519
+id_rsa
 
 
 # === Python ===
