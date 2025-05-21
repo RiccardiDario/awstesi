@@ -1,0 +1,21 @@
+Installare i paccchetti necessari:
+Server: ansible-playbook -i server/inventoryserver.ini install_env.yml
+Client: ansible-playbook -i client/inventoryclient.ini install_env.yml
+
+Copia del progetto nella macchina AWS:
+Server: ansible-playbook -i server/inventoryserver.ini server/deploy_server.yml
+Client: ansible-playbook -i client/inventoryclient.ini client/deploy_client.yml
+
+Per mostrare le risorse utilizzate nella macchina:
+top; htop; ps aux | grep apt
+
+Per connetterti alla macchina aws tramite ssh:
+ssh -i "id_rsa" ubuntu@54.76.250.113
+
+Rimozione cartella con permessi di root:
+sudo rm -rf WebAppPostQuantumServer
+
+Per copiare la cartella report da AWS sul host:
+scp -i id_rsa -r ubuntu@13.51.175.236:/home/ubuntu/WebAppPostQuantumServer/report ./report
+
+docker exec -it client /bin/sh
