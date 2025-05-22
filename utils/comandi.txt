@@ -9,13 +9,19 @@ Client: ansible-playbook -i client/inventoryclient.ini client/deploy_client.yml
 Per mostrare le risorse utilizzate nella macchina:
 top; htop; ps aux | grep apt
 
-Per connetterti alla macchina aws tramite ssh:
-ssh -i "id_rsa" ubuntu@54.76.250.113
-
 Rimozione cartella con permessi di root:
 sudo rm -rf WebAppPostQuantumServer
 
 Per copiare la cartella report da AWS sul host:
-scp -i id_rsa -r ubuntu@13.51.175.236:/home/ubuntu/WebAppPostQuantumServer/report ./report
+scp -i id_rsa -r ubuntu@34.249.8.248:/home/ubuntu/WebAppPostQuantumServer/report ./report
 
+Per copiare un file sulla macchina:
+scp -i id_rsa app.py ubuntu@34.249.8.248:~
 docker exec -it client /bin/sh
+
+Per connetterti alla macchina aws tramite ssh:
+Server: ssh -i id_rsa ubuntu@34.249.8.248
+Client: ssh -i id_rsa ubuntu@63.34.14.27
+
+bit4id
+
