@@ -13,7 +13,8 @@ Rimozione cartella con permessi di root:
 sudo rm -rf report
 
 Per copiare la cartella report da AWS sul host:
-scp -i id_rsa -r ubuntu@34.249.8.248:/home/ubuntu/WebAppPostQuantumServer/report ./report
+scp -i id_rsa -r ubuntu@34.249.8.248:/home/ubuntu/server/report ./report
+scp -i id_rsa -r ubuntu@63.34.14.27:/home/ubuntu/client/report ./report
 
 Per copiare un file sulla macchina:
 scp -i id_rsa app.py ubuntu@34.249.8.248:~
