@@ -1,10 +1,10 @@
 Installare i paccchetti necessari:
-Server: ansible-playbook -i server/inventoryserver.ini install_env.yml
-Client: ansible-playbook -i client/inventoryclient.ini install_env.yml
+Server: ansible-playbook -i inventoryserver.ini install_env.yml
+Client: ansible-playbook -i inventoryclient.ini install_env.yml
 
 Copia del progetto nella macchina AWS:
-Server: ansible-playbook -i server/inventoryserver.ini server/deploy_server.yml
-Client: ansible-playbook -i client/inventoryclient.ini client/deploy_client.yml
+Server: ansible-playbook -i inventoryserver.ini deploy_server.yml
+Client: ansible-playbook -i inventoryclient.ini deploy_client.yml
 
 Per mostrare le risorse utilizzate nella macchina:
 top; htop; ps aux | grep apt
