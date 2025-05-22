@@ -10,7 +10,7 @@ Per mostrare le risorse utilizzate nella macchina:
 top; htop; ps aux | grep apt
 
 Rimozione cartella con permessi di root:
-sudo rm -rf WebAppPostQuantumServer
+sudo rm -rf report
 
 Per copiare la cartella report da AWS sul host:
 scp -i id_rsa -r ubuntu@34.249.8.248:/home/ubuntu/WebAppPostQuantumServer/report ./report
@@ -18,6 +18,11 @@ scp -i id_rsa -r ubuntu@34.249.8.248:/home/ubuntu/WebAppPostQuantumServer/report
 Per copiare un file sulla macchina:
 scp -i id_rsa app.py ubuntu@34.249.8.248:~
 docker exec -it client /bin/sh
+
+
+# Dai i permessi a tutte le cartelle del progetto
+Server: sudo chown -R ubuntu:ubuntu /home/ubuntu/server
+Client: sudo chown -R ubuntu:ubuntu /home/ubuntu/client
 
 Per connetterti alla macchina aws tramite ssh:
 Server: ssh -i id_rsa ubuntu@34.249.8.248

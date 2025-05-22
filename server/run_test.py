@@ -38,7 +38,7 @@ def update_sig(sig):
 
 def run_single_test(i):
     print(f"\n🚀 Test {i}")
-    code, _, err = run_subprocess(["docker-compose", "up", "-d"], timeout=30)
+    code, _, err = run_subprocess(["docker", "compose", "up", "-d"], timeout=30)
     if code != 0:
         print(f"❌ Errore: {err}")
         return
@@ -52,7 +52,7 @@ def run_single_test(i):
     else:
         print(f"⚠️ Timeout dopo {TIMEOUT}s.")
     print("🛑 Arresto container...")
-    run_subprocess(["docker-compose", "down"], timeout=30)
+    run_subprocess(["docker", "compose", "down"], timeout=30)
     print("🧹 Cleanup volumi...")
     for v in ["webapppostquantum_certs"]:
         run_subprocess(["docker", "volume", "rm", "-f", v])
