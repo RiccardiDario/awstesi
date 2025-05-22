@@ -6,7 +6,7 @@ import json, subprocess, time, re, os, random, csv, pandas as pd, matplotlib.pyp
 from collections import defaultdict
 
 sig_list = ["ecdsa_p256", "mldsa44", "p256_mldsa44"]
-NUM_RUNS, TIMEOUT, SLEEP = 3, 300, 2
+NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 SERVER, SERVER_DONE = "nginx_pq", r"--- Informazioni RAM ---"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
