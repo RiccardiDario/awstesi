@@ -6,7 +6,7 @@ import json, subprocess, psutil, time, math, re, logging, os, random, csv, panda
 from collections import defaultdict
 
 kem_list = ["secp384r1", "mlkem768", "p384_mlkem768"]
-URL = "http://34.249.8.248/plan"
+URL = "http://52.212.18.167/plan"
 NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 CLIENT, CLIENT_DONE = "client", r"\[INFO\] Test completato in .* Report: /app/output/request_logs/request_client\d+\.csv"
 
