@@ -228,6 +228,3 @@ aws ec2 describe-images \
 ```
 
 ---
-
-Questa guida ti fornisce una panoramica completa e discorsiva su come impostare un ambiente di provisioning automatizzato usando strumenti moderni e compatibili con AWS.
-
