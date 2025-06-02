@@ -58,6 +58,28 @@ def run_single_test(i):
         run_subprocess(["docker", "volume", "rm", "-f", v])
     if i < NUM_RUNS: time.sleep(SLEEP)
 
+def get_kem_sig_from_monitor_file(filepath):
+    try:
+        df = pd.read_csv(filepath)
+        return df["KEM"].dropna().iloc[0].strip(), df["Signature"].dropna().iloc[0].strip()
+    except Exception as e:
+        print(f"Errore durante l'estrazione di KEM/SIG dal file di monitoraggio {filepath}: {e}")
+        return "Unknown", "Unknown"
+
+def run_all_tests_randomized():
+    plan = [(i, j) for i in range(len(sig_list)) for j in range(1, NUM_RUNS + 1)]
+    random.shuffle(plan)
+    with open(plan_path, "w", encoding="utf-8") as f:
+        json.dump(plan, f)
+    print(f"📤 Piano test salvato in {plan_path}")
+    last_sig = None
+    for scenario_idx, replica in plan:
+        sig = sig_list[scenario_idx]
+        print(f"\n🔀 Scenario: {sig} | Replica: {replica}")
+        if sig != last_sig: update_sig(sig); last_sig = sig
+        run_single_test(replica)
+    print("\n🎉 Tutti i test completati!")
+
 def generate_server_performance_graphs():
     print("📈 Generazione grafici performance server per ogni coppia KEM/Signature...")
     grouped_files = defaultdict(list)
@@ -100,29 +122,7 @@ def generate_server_performance_graphs():
         fig.savefig(out_path, dpi=300, bbox_inches="tight")
         plt.close(fig)
         print(f"✅ Grafico generato: {out_path}")
-
-def get_kem_sig_from_monitor_file(filepath):
-    try:
-        df = pd.read_csv(filepath)
-        return df["KEM"].dropna().iloc[0].strip(), df["Signature"].dropna().iloc[0].strip()
-    except Exception as e:
-        print(f"Errore durante l'estrazione di KEM/SIG dal file di monitoraggio {filepath}: {e}")
-        return "Unknown", "Unknown"
-
-def run_all_tests_randomized():
-    plan = [(i, j) for i in range(len(sig_list)) for j in range(1, NUM_RUNS + 1)]
-    random.shuffle(plan)
-    with open(plan_path, "w", encoding="utf-8") as f:
-        json.dump(plan, f)
-    print(f"📤 Piano test salvato in {plan_path}")
-    last_sig = None
-    for scenario_idx, replica in plan:
-        sig = sig_list[scenario_idx]
-        print(f"\n🔀 Scenario: {sig} | Replica: {replica}")
-        if sig != last_sig: update_sig(sig); last_sig = sig
-        run_single_test(replica)
-    print("\n🎉 Tutti i test completati!")
-
+        
 if __name__ == "__main__":
     run_all_tests_randomized()
     generate_server_performance_graphs()

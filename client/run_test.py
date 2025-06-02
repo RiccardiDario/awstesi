@@ -9,7 +9,6 @@ kem_list = ["secp384r1", "mlkem768", "p384_mlkem768"]
 URL = "http://52.212.18.167/plan"
 NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 CLIENT, CLIENT_DONE = "client", r"\[INFO\] Test completato in .* Report: /app/output/request_logs/request_client\d+\.csv"
-
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 START_CLIENT_PATH = os.path.join(BASE_DIR, "start_client.py")
 output_csv = os.path.join(BASE_DIR, "report/request_logs/avg/average_metrics_per_request.csv")
@@ -79,28 +78,6 @@ def update_kem(kem):
     with open(START_CLIENT_PATH, "w", encoding="utf-8") as f: 
         f.write(content)
     print(f"✅ KEM: {kem}")
-
-def run_single_test(i):
-    print(f"\n🚀 Test {i}")
-    code, _, err = run_subprocess(["docker", "compose", "up", "-d"], timeout=30)
-    if code != 0: 
-        print(f"❌ Errore: {err}")
-        return
-    print("⌛ In attesa log...")
-    start = time.time()
-    while time.time() - start < TIMEOUT:
-        if check_logs(CLIENT, CLIENT_DONE): 
-            print(f"✅ Completato.")
-            break
-        time.sleep(SLEEP)
-    else:
-        print(f"⚠️ Timeout dopo {TIMEOUT}s.")
-    print("🛑 Arresto container...")
-    run_subprocess(["docker", "compose", "down"], timeout=30)
-    print("🧹 Cleanup volumi...")
-    for v in ["webapppostquantum_pcap", "webapppostquantum_tls_keys"]:
-        run_subprocess(["docker", "volume", "rm", "-f", v])
-    if i < NUM_RUNS: time.sleep(SLEEP)
 
 def generate_graphs_from_average_per_request():
     if not os.path.exists(output_csv): logging.warning("File average_metrics_per_request.csv non trovato."); return
@@ -225,6 +202,28 @@ def generate_system_monitor_graph():
         fname = f"resource_usage_{kem}_{sig}".replace("/", "_").replace("\n", "_").strip() + ".png"
         plt.savefig(os.path.join(GRAPH_DIR, fname), dpi=300); plt.close()
         print(f"✅ Grafico salvato: {fname}")
+
+def run_single_test(i):
+    print(f"\n🚀 Test {i}")
+    code, _, err = run_subprocess(["docker", "compose", "up", "-d"], timeout=30)
+    if code != 0: 
+        print(f"❌ Errore: {err}")
+        return
+    print("⌛ In attesa log...")
+    start = time.time()
+    while time.time() - start < TIMEOUT:
+        if check_logs(CLIENT, CLIENT_DONE): 
+            print(f"✅ Completato.")
+            break
+        time.sleep(SLEEP)
+    else:
+        print(f"⚠️ Timeout dopo {TIMEOUT}s.")
+    print("🛑 Arresto container...")
+    run_subprocess(["docker", "compose", "down"], timeout=30)
+    print("🧹 Cleanup volumi...")
+    for v in ["webapppostquantum_pcap", "webapppostquantum_tls_keys"]:
+        run_subprocess(["docker", "volume", "rm", "-f", v])
+    if i < NUM_RUNS: time.sleep(SLEEP)
 
 def run_all_tests_randomized(plan):
     if not plan:
