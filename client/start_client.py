@@ -6,7 +6,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()])
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
-NUM_REQUESTS, active_requests, active_requests_lock, global_stats = 2000, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+NUM_REQUESTS, active_requests, active_requests_lock, global_stats = 1000, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
 CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "--curves", "p521_mlkem1024", "-k", "-w",
 "Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n","-s", "https://54.217.117.209:443"]
 
