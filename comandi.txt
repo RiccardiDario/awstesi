@@ -11,6 +11,7 @@ top; htop; ps aux | grep apt
 
 Rimozione cartella con permessi di root:
 sudo rm -rf report
+sudo rm -rf shared_plan
 
 Per copiare la cartella report da AWS sul host:
 scp -i id_rsa -r ubuntu@54.217.117.209:/home/ubuntu/server/report ./report
