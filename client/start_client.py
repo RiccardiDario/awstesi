@@ -6,8 +6,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(me
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
 NUM_REQUESTS, active_requests, active_requests_lock, global_stats = 2000, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
-CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "--curves", "p256_mlkem512", "-k", "-w",
-"Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n","-s", "https://52.212.18.167:443"]
+CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "--curves", "p521_mlkem1024", "-k", "-w",
+"Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n","-s", "https://54.217.117.209:443"]
 
 def get_next_filename(base_path, base_name, extension):
     counter = 1
@@ -101,7 +101,7 @@ def analyze_pcap():
                     fields = line.split("\t")
                     if len(fields) >= 6:
                         dst_ip, frame_size = fields[2], int(fields[4])
-                        if dst_ip == "52.212.18.167": tls_upload_bytes += frame_size
+                        if dst_ip == "54.217.117.209": tls_upload_bytes += frame_size
                         else: tls_download_bytes += frame_size
                 except ValueError: continue
 
@@ -163,7 +163,7 @@ def update_average_report(request_results):
     logging.info(f"Report delle medie aggiornato: {avg_file}")
 
 def wait_and_lock_server():
-    base_url_http = "http://52.212.18.167"
+    base_url_http = "http://54.217.117.209"
     print("🔁 Sync con Nginx/Flask via HTTP (curl)...")
     while True:
         try:
