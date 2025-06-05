@@ -7,7 +7,6 @@ def get_next_filename(path, name, ext, counter=1):
 
 RESOURCE_LOG_DIR, FILTERED_LOG_DIR = "/opt/nginx/output/resource_logs", "/opt/nginx/output/filtered_logs"
 for d in (RESOURCE_LOG_DIR, FILTERED_LOG_DIR): os.makedirs(d, exist_ok=True)
-
 RESOURCE_LOG, OUTPUT_FILE = get_next_filename(RESOURCE_LOG_DIR, "monitor_nginx", "csv"), get_next_filename(FILTERED_LOG_DIR, "monitor_nginx_filtered", "csv")
 ACCESS_LOG, AVG_METRICS_FILE = "/opt/nginx/logs/access_custom.log",f"{FILTERED_LOG_DIR}/avg_nginx_usage.csv"
 EXPECTED_REQUESTS, SAMPLING_INTERVAL = 500, 0.1

@@ -5,7 +5,7 @@ from datetime import datetime
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()])
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
-NUM_REQUESTS, active_requests, active_requests_lock, global_stats = 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+NUM_REQUESTS, active_requests, active_requests_lock, global_stats = 2000, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
 CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "--curves", "p256_mlkem512", "-k", "-w",
 "Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n","-s", "https://52.212.18.167:443"]
 
@@ -199,13 +199,13 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
     start_time = time.time()
     request_results = []  
     try:
-        for i in range(NUM_REQUESTS):
-            result = execute_request(i + 1)
-            request_results.append(result)
+        #for i in range(NUM_REQUESTS):
+            #result = execute_request(i + 1)
+            #request_results.append(result)
         #Decommentare per avere le richieste parallele, commentando le tre righe superiori
-        #with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
-            #futures = [executor.submit(execute_request, i + 1) for i in range(NUM_REQUESTS)]  
-            #for future in as_completed(futures): request_results.append(future.result()) 
+        with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
+            futures = [executor.submit(execute_request, i + 1) for i in range(NUM_REQUESTS)]  
+            for future in as_completed(futures): request_results.append(future.result()) 
     finally:
         monitor_thread.join()
         end_time = time.time()

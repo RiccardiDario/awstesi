@@ -36,5 +36,4 @@ services:
     privileged: true
     depends_on:
       - cert-generator
-    #entrypoint: ["/bin/sh", "-c", "nginx -c /opt/nginx/nginx.conf -g 'daemon off;' & tail -f /dev/null"]
     entrypoint: ["/bin/sh", "-c", "nginx -c /opt/nginx/nginx.conf -g 'daemon off;' & sleep 1 && python3 /opt/nginx/start_server.py && tail -f /dev/null"]

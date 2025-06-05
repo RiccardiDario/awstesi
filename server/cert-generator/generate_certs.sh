@@ -12,7 +12,6 @@ openssl_pkey() {
     ecdsa_p256) openssl ecparam -genkey -name prime256v1 -out "$2" ;;
     ecdsa_p384) openssl ecparam -genkey -name secp384r1 -out "$2" ;;
     ecdsa_p521) openssl ecparam -genkey -name secp521r1 -out "$2" ;;
-    ed25519|ed448) openssl genpkey -algorithm "$(echo "$1" | tr a-z A-Z)" -out "$2" ;;
     *) openssl genpkey -algorithm "$1" -out "$2" ;;
   esac
 }
