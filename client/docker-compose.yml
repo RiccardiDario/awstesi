@@ -30,4 +30,4 @@ services:
     stdin_open: true
     tty: true
     command: >
-      tshark -i any -f "tcp port 443 and host 54.217.117.209" -w /pcap/capture.pcap
+      tshark -i any -f "tcp port 443 and host 52.31.99.69" -w /pcap/capture.pcap

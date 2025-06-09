@@ -15,7 +15,7 @@ Comando per analizzare tutto il traffico all'interno del container del client:
 tshark -r /app/pcap/capture.pcap -q -z conv,tcp
 
 
-python3 -c "import pycurl; from io import BytesIO; b = BytesIO(); c = pycurl.Curl(); c.setopt(c.URL, 'https://nginx_pq:443'); c.setopt(c.CAINFO, '/opt/certs/CA.crt'); c.setopt(c.SSLVERSION, c.SSLVERSION_TLSv1_3); c.setopt(c.VERBOSE, True); c.setopt(c.WRITEDATA, b); c.perform(); print('HTTP Response Code:', c.getinfo(c.RESPONSE_CODE)); print('Response body:\\n', b.getvalue().decode()); c.close()"
+python3 -c "import pycurl; from io import BytesIO; b = BytesIO(); c = pycurl.Curl(); c.setopt(c.URL, 'https://52.31.99.69'); c.setopt(c.CAINFO, '/opt/certs/CA.crt'); c.setopt(c.SSLVERSION, c.SSLVERSION_TLSv1_3); c.setopt(c.VERBOSE, True); c.setopt(c.WRITEDATA, b); c.perform(); print('HTTP Response Code:', c.getinfo(c.RESPONSE_CODE)); print('Response body:\\n', b.getvalue().decode()); c.close()"
 
 Comando per analizzare solo il traffico TLS all'interno del container del client:
 tshark -r /app/pcap/capture.pcap -Y "tls.handshake" -T fields -e ip.src -e tcp.srcport -e ip.dst -e tcp.dstport -e frame.len -e tls.handshake.type -o tls.keylog_file:/tls_keys/tls-secrets.log

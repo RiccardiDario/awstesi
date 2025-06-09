@@ -6,7 +6,7 @@ import json, subprocess, psutil, time, math, re, logging, os, random, csv, panda
 from collections import defaultdict
 
 kem_list = ["secp256r1", "mlkem512", "p256_mlkem512"]
-URL = "http://54.217.117.209/plan"
+URL = "http://52.31.99.69/plan"
 NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 CLIENT, CLIENT_DONE = "client", r"\[INFO\] Test completato in .* Report: /app/output/request_logs/request_client\d+\.csv"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

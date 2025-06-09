@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()])
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
-BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "192.168.1.100", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "52.31.99.69", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
 
 def get_next_filename(base_path, base_name, extension):
     counter = 1
