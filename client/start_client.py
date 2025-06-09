@@ -232,7 +232,7 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
         #with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
             #futures = [executor.submit(execute_request, i + 1) for i in range(NUM_REQUESTS)]  
             #for future in as_completed(futures): request_results.append(future.result()) 
-            
+    finally:        
         monitor_thread.join()
         end_time = time.time()
     kem_used  = next((r[8] for r in request_results if r[8] != "Unknown"), "Unknown")
