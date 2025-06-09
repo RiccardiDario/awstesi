@@ -1,12 +1,14 @@
-import pycurl, json, os, re, time, logging, subprocess, csv, psutil, pandas as pd
+import json, os, re, time, logging, subprocess, csv, psutil, pandas as pd
 from threading import Thread, Lock
 from datetime import datetime
-from io import BytesIO
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()])
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
-BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "192.168.1.100", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+NUM_REQUESTS, active_requests, active_requests_lock, global_stats = 1000, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "--curves", "p521_mlkem1024", "-k", "-w",
+"Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n","-s", "https://54.217.117.209:443"]
 
 def get_next_filename(base_path, base_name, extension):
     counter = 1
@@ -25,70 +27,44 @@ def monitor_system():
             if stable_counter >= 5: break
             time.sleep(0.1)
 
-def build_debug_callback(stream):
-    def debug_cb(t, m):
-        try:
-            if t == pycurl.INFOTYPE_TEXT:
-                stream.write(b"* " + m)
-            elif t == pycurl.INFOTYPE_HEADER_IN:
-                stream.write(f"<= Recv header, {len(m)} bytes\n".encode())
-            elif t == pycurl.INFOTYPE_HEADER_OUT:
-                stream.write(f"=> Send header, {len(m)} bytes\n".encode())
-            elif t == pycurl.INFOTYPE_DATA_IN:
-                stream.write(f"<= Recv data, {len(m)} bytes\n".encode())
-            elif t == pycurl.INFOTYPE_DATA_OUT:
-                stream.write(f"=> Send data, {len(m)} bytes\n".encode())
-            elif t == pycurl.INFOTYPE_SSL_DATA_IN:
-                stream.write(f"<= Recv SSL data, {len(m)} bytes\n".encode())
-            elif t == pycurl.INFOTYPE_SSL_DATA_OUT:
-                stream.write(f"=> Send SSL data, {len(m)} bytes\n".encode())
-        except Exception as e:
-            stream.write(f"# Error in debug callback: {e}\n".encode())
-    return debug_cb
-
 def execute_request(req_num):
     global active_requests
-    trace_file, kem, sig_alg, cert_size = f"{TRACE_LOG_DIR}trace_{req_num}.log", "Unknown", "Unknown", 0
-    with active_requests_lock:
-        active_requests += 1
+    trace_file, cert_size, kem, sig_alg  = f"{TRACE_LOG_DIR}trace_{req_num}.log", 0, "Unknown", "Unknown"
+    with active_requests_lock: active_requests += 1  
     try:
         start = time.time()
-        buffer, stderr_buf, c = BytesIO(), BytesIO(), pycurl.Curl()
-        for o, v in [(pycurl.URL, f"https://{BASE_DOMAIN}"),(pycurl.CAINFO, "/opt/certs/CA.crt"), (pycurl.SSLVERSION, pycurl.SSLVERSION_TLSv1_3), (pycurl.WRITEDATA, buffer),
-            (pycurl.VERBOSE, True),(pycurl.DEBUGFUNCTION, build_debug_callback(stderr_buf))]: c.setopt(o, v)
-        c.perform()
-        elapsed = round((time.time() - start) * 1000, 3)
-        conn = round(c.getinfo(c.CONNECT_TIME) * 1000, 3)
-        hs = round(c.getinfo(c.APPCONNECT_TIME) * 1000, 3)
-        total = round(c.getinfo(c.TOTAL_TIME) * 1000, 3)
-        status = str(c.getinfo(c.RESPONSE_CODE))
-        success = "Success" if status == "200" else "Failure"
-        c.close()
-        stderr = stderr_buf.getvalue().decode("iso-8859-1", errors="replace").splitlines()
-        with open(trace_file, "w", encoding="iso-8859-1") as f:
-            f.write("\n".join(stderr))
-        sent = recv = 0
-        prev = ""
-        for line in stderr:
-            if (m := re.search(r"(=> Send SSL data, (\d+)|Send header, (\d+))", line)):
-                sent += int(m.group(2) or m.group(3))
-            if (m := re.search(r"(<= Recv SSL data, (\d+)|Recv header, (\d+)|Recv data, (\d+))", line)):
-                recv += int(m.group(2) or m.group(3) or m.group(4))
-            if (m := re.search(r"SSL connection using TLSv1.3 / [^/]+ / (\S+) /", line)):
-                kem = m.group(1)
-            if "signed using" in line and (m := re.search(r"signed using (\S+)", line)):
-                sig_alg = m.group(1)
-            if "TLS handshake, Certificate (11):" in prev and (m := re.search(r"<= Recv SSL data, (\d+)", line)):
-                cert_size = int(m.group(1))
-            prev = line
-        logging.info(f"Richiesta {req_num}: {success} | Connessione={conn} ms, Handshake={hs} ms, Total_Time={total} ms, ElaspsedTime={elapsed} ms, Inviati={sent}, Ricevuti={recv}, HTTP={status}, KEM={kem}, Firma={sig_alg}, Cert_Size={cert_size} B")
-        return [req_num, conn, hs, total, elapsed, success, sent, recv, kem, sig_alg, cert_size]
+        process = subprocess.Popen(CURL_COMMAND_TEMPLATE + ["--trace", trace_file, "-o", "/dev/null"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, _ = process.communicate()
+        elapsed_time = round((time.time() - start) * 1000, 3)
+        bytes_sent = bytes_received = 0
+        previous_line = ""
+        if os.path.exists(trace_file):
+            with open(trace_file, encoding="utf-8") as f:
+                for line in f:
+                    m_sent, m_recv = re.search(r"(=> Send SSL data, (\d+)|Send header, (\d+))", line), re.search(r"(<= Recv SSL data, (\d+)|Recv header, (\d+)|Recv data, (\d+))", line)
+                    bytes_sent += int(m_sent.group(2) or m_sent.group(3)) if m_sent else 0
+                    bytes_received += int(m_recv.group(2) or m_recv.group(3) or m_recv.group(4)) if m_recv else 0
+                    if match_tls := re.search(r"SSL connection using TLSv1.3 / .* / (\S+) / (\S+)", line): kem = match_tls.group(1)
+                    if match_sig := re.search(r"Certificate level 1: .* signed using ([^,]+)", line): sig_alg = match_sig.group(1)
+                    if "TLS handshake, Certificate (11):" in previous_line and (match_cert_size := re.search(r"<= Recv SSL data, (\d+)", line)): cert_size = int(match_cert_size.group(1))
+                    previous_line = line
+        try:
+            metrics = stdout.strip().rsplit(", ", 1)
+            http_status = metrics[-1].strip()
+            metrics_dict = {k + " (ms)": round(float(v[:-1]) * 1000, 3) for k, v in (item.split(": ") for item in metrics[0].split(", "))}
+            connect_time, handshake_time, total_time = metrics_dict.get("Connect Time (ms)"), metrics_dict.get("TLS Handshake (ms)"), metrics_dict.get("Total Time (ms)")
+            success_status = "Success" if http_status == "200" else "Failure"
+        except Exception:
+            logging.error(f"Errore parsing metriche richiesta {req_num}")
+            connect_time = handshake_time = total_time = None
+            success_status = "Failure"
+        logging.info(f"Richiesta {req_num}: {success_status} | Connessione={connect_time} ms, Handshake={handshake_time} ms, Total_Time={total_time} ms, ElaspsedTime={elapsed_time} ms, Inviati={bytes_sent}, Ricevuti={bytes_received}, HTTP={http_status}, KEM={kem}, Firma={sig_alg}, Cert_Size={cert_size} B")
+        return [req_num, connect_time, handshake_time, total_time, elapsed_time, success_status, bytes_sent, bytes_received, kem, sig_alg, cert_size]
     except Exception as e:
         logging.error(f"Errore richiesta {req_num}: {e}")
         return [req_num, None, None, None, None, "Failure", 0, 0, kem, sig_alg, cert_size]
     finally:
-        with active_requests_lock:
-            active_requests -= 1
+        with active_requests_lock: active_requests -= 1
 
 def convert_to_bytes(value, unit):
     unit = unit.lower()
@@ -126,7 +102,7 @@ def analyze_pcap():
                     fields = line.split("\t")
                     if len(fields) >= 6:
                         dst_ip, frame_size = fields[2], int(fields[4])
-                        if dst_ip == BASE_DOMAIN: tls_upload_bytes += frame_size
+                        if dst_ip == "54.217.117.209": tls_upload_bytes += frame_size
                         else: tls_download_bytes += frame_size
                 except ValueError: continue
 
@@ -188,7 +164,7 @@ def update_average_report(request_results):
     logging.info(f"Report delle medie aggiornato: {avg_file}")
 
 def wait_and_lock_server():
-    base_url_http = f"http://{BASE_DOMAIN}"
+    base_url_http = "http://54.217.117.209"
     print("🔁 Sync con Nginx/Flask via HTTP (curl)...")
     while True:
         try:
@@ -224,16 +200,17 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
     start_time = time.time()
     request_results = []  
     try:
-        for i in range(NUM_REQUESTS):
-            result = execute_request(i + 1)
-            request_results.append(result)
-            #Decommentare per avere le richieste parallele, commentando le tre righe superiori
-        #with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
-            #futures = [executor.submit(execute_request, i + 1) for i in range(NUM_REQUESTS)]  
-            #for future in as_completed(futures): request_results.append(future.result()) 
-            
+        #for i in range(NUM_REQUESTS):
+            #result = execute_request(i + 1)
+            #request_results.append(result)
+        #Decommentare per avere le richieste parallele, commentando le tre righe superiori
+        with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
+            futures = [executor.submit(execute_request, i + 1) for i in range(NUM_REQUESTS)]  
+            for future in as_completed(futures): request_results.append(future.result()) 
+    finally:
         monitor_thread.join()
         end_time = time.time()
+    
     kem_used  = next((r[8] for r in request_results if r[8] != "Unknown"), "Unknown")
     sig_used = next((r[9] for r in request_results if r[9] != "Unknown"), "Unknown")
     pd.read_csv(MONITOR_FILE).assign(KEM=kem_used, Signature=sig_used).to_csv(MONITOR_FILE, index=False)
@@ -242,5 +219,6 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
         request_number = result[0]
         if result[5] == "Success": success_count += 1
         writer.writerow(result[:6] + [f"{success_count}/{NUM_REQUESTS}"] + result[6:])
+
 update_average_report(request_results)
 logging.info(f"Test completato in {end_time - start_time:.2f} secondi. Report: {OUTPUT_FILE}")
