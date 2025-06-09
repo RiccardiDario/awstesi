@@ -55,8 +55,8 @@ def execute_request(req_num):
     try:
         start = time.time()
         buffer, stderr_buf, c = BytesIO(), BytesIO(), pycurl.Curl()
-        for o, v in [(pycurl.URL, f"https://{BASE_DOMAIN}"),(pycurl.CAINFO, "/opt/certs/CA.crt"), (pycurl.SSLVERSION, pycurl.SSLVERSION_TLSv1_3), (pycurl.WRITEDATA, buffer),
-            (pycurl.VERBOSE, True),(pycurl.DEBUGFUNCTION, build_debug_callback(stderr_buf))]: c.setopt(o, v)
+        for o, v in [(pycurl.URL, f"https://{BASE_DOMAIN}"), (pycurl.SSLVERSION, pycurl.SSLVERSION_TLSv1_3), (pycurl.VERBOSE, True), (pycurl.WRITEDATA, buffer),
+            (pycurl.DEBUGFUNCTION, build_debug_callback(stderr_buf)) (pycurl.SSL_VERIFYPEER, False), (pycurl.SSL_VERIFYHOST, False)]: c.setopt(o, v)
         c.perform()
         elapsed = round((time.time() - start) * 1000, 3)
         conn = round(c.getinfo(c.CONNECT_TIME) * 1000, 3)
