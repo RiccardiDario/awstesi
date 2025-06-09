@@ -10,7 +10,7 @@ URL = "http://54.217.117.209/plan"
 NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 CLIENT, CLIENT_DONE = "client", r"\[INFO\] Test completato in .* Report: /app/output/request_logs/request_client\d+\.csv"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-START_CLIENT_PATH = os.path.join(BASE_DIR, "start_client.py")
+docker_compose_path = os.path.join(BASE_DIR, "docker-compose.yml")
 output_csv = os.path.join(BASE_DIR, "report/request_logs/avg/average_metrics_per_request.csv")
 output_csv_avg = os.path.join(BASE_DIR, "report/request_logs/avg/average_metrics.csv")
 GRAPH_DIR = os.path.join(BASE_DIR, "report/graph")
@@ -73,9 +73,10 @@ def check_logs(container, pattern):
     return re.search(pattern, out) is not None if out else False
 
 def update_kem(kem):
-    with open(START_CLIENT_PATH, "r", encoding="utf-8") as f:
-        content = re.sub(r'("--curves",\s*")[^"]+(")', f'\\1{kem}\\2', f.read())
-    with open(START_CLIENT_PATH, "w", encoding="utf-8") as f: 
+    path = os.path.join(BASE_DIR, "docker-compose.yml")
+    with open(docker_compose_path, "r", encoding="utf-8") as f:
+        content = re.sub(r"(DEFAULT_GROUPS=)[^\s\n]+", f"\\1{kem}", f.read())
+    with open(path, "w", encoding="utf-8") as f:
         f.write(content)
     print(f"✅ KEM: {kem}")
 
