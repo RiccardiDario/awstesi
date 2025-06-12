@@ -263,7 +263,7 @@ with open(OUTPUT_FILE, "w", newline="", encoding="utf-8") as f:
     request_results = []  
     try:
         for i in range(NUM_REQUESTS):
-            result = execute_request(i + 1)
+            result = execute_request_curl(i + 1)
             request_results.append(result)
             #Decommentare per avere le richieste parallele, commentando le tre righe superiori
         #with ThreadPoolExecutor(max_workers=NUM_REQUESTS) as executor:
