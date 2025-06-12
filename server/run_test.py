@@ -10,7 +10,7 @@ NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 SERVER, SERVER_DONE = "nginx_pq", r"--- Informazioni RAM ---"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-ENV_PATH, SHARED_VOLUMED_PATH = os.path.join(BASE_DIR, "cert-generator/.env"), os.path.join(BASE_DIR, "shared_plan")
+docker_compose_path, SHARED_VOLUMED_PATH = os.path.join(BASE_DIR, "docker-compose.yml"), os.path.join(BASE_DIR, "shared_plan")
 GRAPH_DIR, FILTERED_LOG_DIR = os.path.join(BASE_DIR, "report/graph"), os.path.join(BASE_DIR, "report/filtered_logs")
 for d in (GRAPH_DIR, FILTERED_LOG_DIR, SHARED_VOLUMED_PATH): os.makedirs(d, exist_ok=True)
 plan_path = os.path.join(SHARED_VOLUMED_PATH, "plan.json")
@@ -31,9 +31,10 @@ def check_logs(container, pattern):
     return re.search(pattern, out) is not None if out else False
 
 def update_sig(sig):
-    with open(ENV_PATH, "r", encoding="utf-8") as f:
-        lines = [f"SIGNATURE_ALGO={sig}\n" if l.startswith("SIGNATURE_ALGO=") else l for l in f]
-    with open(ENV_PATH, "w", encoding="utf-8") as f: f.writelines(lines)
+    with open(docker_compose_path, "r", encoding="utf-8") as f:
+        content = re.sub(r"(SIGNATURE_ALGO=)[^\s\n]+", f"\\1{sig}", f.read())
+    with open(docker_compose_path, "w", encoding="utf-8") as f:
+        f.write(content)
     print(f"✅ Signature: {sig}")
 
 def run_single_test(i):

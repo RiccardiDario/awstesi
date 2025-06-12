@@ -131,7 +131,7 @@ def analyze_pcap():
                         else: tls_download_bytes += frame_size
                 except ValueError: continue
 
-        div = lambda x: x / (num_connessioni / 2) if num_connessioni > 0 else 0
+        div = lambda x: x / num_connessioni if num_connessioni > 0 else 0
         avg_upload, avg_download = div(upload_bytes), div(download_bytes)
         avg_tls_upload, avg_tls_download = div(tls_upload_bytes), div(tls_download_bytes)
 
