@@ -1,13 +1,11 @@
 import pycurl, json, os, re, time, logging, subprocess, csv, psutil, pandas as pd
-from threading import Thread, Lock
-from datetime import datetime
-from io import BytesIO
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from threading import Thread, Lock; from datetime import datetime; from io import BytesIO; from concurrent.futures import ThreadPoolExecutor, as_completed
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()])
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
-BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "52.31.99.69", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "192.168.1.8", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "-k", "-w", "Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n", "-s", f"https://{BASE_DOMAIN}"]
 
 def get_next_filename(base_path, base_name, extension):
     counter = 1
@@ -91,6 +89,45 @@ def execute_request(req_num):
         with active_requests_lock:
             active_requests -= 1
 
+def execute_request_curl(req_num):
+    global active_requests
+    trace_file, cert_size, kem, sig_alg  = f"{TRACE_LOG_DIR}trace_{req_num}.log", 0, "Unknown", "Unknown"
+    with active_requests_lock: active_requests += 1  
+    try:
+        start = time.time()
+        process = subprocess.Popen(CURL_COMMAND_TEMPLATE + ["--trace", trace_file, "-o", "/dev/null"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        stdout, _ = process.communicate()
+        elapsed_time = round((time.time() - start) * 1000, 3)
+        bytes_sent = bytes_received = 0
+        previous_line = ""
+        if os.path.exists(trace_file):
+            with open(trace_file, encoding="utf-8") as f:
+                for line in f:
+                    m_sent, m_recv = re.search(r"(=> Send SSL data, (\d+)|Send header, (\d+))", line), re.search(r"(<= Recv SSL data, (\d+)|Recv header, (\d+)|Recv data, (\d+))", line)
+                    bytes_sent += int(m_sent.group(2) or m_sent.group(3)) if m_sent else 0
+                    bytes_received += int(m_recv.group(2) or m_recv.group(3) or m_recv.group(4)) if m_recv else 0
+                    if match_tls := re.search(r"SSL connection using TLSv1.3 / .* / (\S+) / (\S+)", line): kem = match_tls.group(1)
+                    if match_sig := re.search(r"Certificate level 1: .* signed using ([^,]+)", line): sig_alg = match_sig.group(1)
+                    if "TLS handshake, Certificate (11):" in previous_line and (match_cert_size := re.search(r"<= Recv SSL data, (\d+)", line)): cert_size = int(match_cert_size.group(1))
+                    previous_line = line
+        try:
+            metrics = stdout.strip().rsplit(", ", 1)
+            http_status = metrics[-1].strip()
+            metrics_dict = {k + " (ms)": round(float(v[:-1]) * 1000, 3) for k, v in (item.split(": ") for item in metrics[0].split(", "))}
+            connect_time, handshake_time, total_time = metrics_dict.get("Connect Time (ms)"), metrics_dict.get("TLS Handshake (ms)"), metrics_dict.get("Total Time (ms)")
+            success_status = "Success" if http_status == "200" else "Failure"
+        except Exception:
+            logging.error(f"Errore parsing metriche richiesta {req_num}")
+            connect_time = handshake_time = total_time = None
+            success_status = "Failure"
+        logging.info(f"Richiesta {req_num}: {success_status} | Connessione={connect_time} ms, Handshake={handshake_time} ms, Total_Time={total_time} ms, ElaspsedTime={elapsed_time} ms, Inviati={bytes_sent}, Ricevuti={bytes_received}, HTTP={http_status}, KEM={kem}, Firma={sig_alg}, Cert_Size={cert_size} B")
+        return [req_num, connect_time, handshake_time, total_time, elapsed_time, success_status, bytes_sent, bytes_received, kem, sig_alg, cert_size]
+    except Exception as e:
+        logging.error(f"Errore richiesta {req_num}: {e}")
+        return [req_num, None, None, None, None, "Failure", 0, 0, kem, sig_alg, cert_size]
+    finally:
+        with active_requests_lock: active_requests -= 1
+
 def convert_to_bytes(value, unit):
     unit = unit.lower()
     value = float(value)
@@ -135,7 +172,7 @@ def analyze_pcap():
         avg_upload, avg_download = div(upload_bytes), div(download_bytes)
         avg_tls_upload, avg_tls_download = div(tls_upload_bytes), div(tls_download_bytes)
 
-        logging.info(f"Numero connessioni individuate: {num_connessioni/2}")
+        logging.info(f"Numero connessioni individuate: {num_connessioni}")
         logging.info(f"Totale upload: {upload_bytes} bytes | Totale download: {download_bytes} bytes")
         logging.info(f"Media byte inviati: {avg_upload:.2f} B | Media byte ricevuti: {avg_download:.2f} B")
         logging.info(f"Media traffico TLS inviato: {avg_tls_upload:.2f} B | Media traffico TLS ricevuto: {avg_tls_download:.2f} B")
