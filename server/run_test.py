@@ -55,7 +55,7 @@ def run_single_test(i):
     print("🛑 Arresto container...")
     run_subprocess(["docker", "compose", "down"], timeout=30)
     print("🧹 Cleanup volumi...")
-    for v in ["webapppostquantum_certs"]:
+    for v in ["server_certs"]:
         run_subprocess(["docker", "volume", "rm", "-f", v])
     if i < NUM_RUNS: time.sleep(SLEEP)
 

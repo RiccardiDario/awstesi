@@ -5,8 +5,8 @@
 import json, subprocess, psutil, time, math, re, logging, os, random, csv, pandas as pd, numpy as np, matplotlib.pyplot as plt
 from collections import defaultdict
 
-kem_list = ["secp384r1", "mlkem768", "p384_mlkem768"]
-URL = "http://52.31.99.69/plan"
+kem_list = ["secp256r1", "mlkem512", "p256_mlkem512"]
+URL = "http://192.168.1.8/plan"
 NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 CLIENT, CLIENT_DONE = "client", r"\[INFO\] Test completato in .* Report: /app/output/request_logs/request_client\d+\.csv"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -222,7 +222,7 @@ def run_single_test(i):
     print("🛑 Arresto container...")
     run_subprocess(["docker", "compose", "down"], timeout=30)
     print("🧹 Cleanup volumi...")
-    for v in ["webapppostquantum_pcap", "webapppostquantum_tls_keys"]:
+    for v in ["client_pcap", "client_tls_keys"]:
         run_subprocess(["docker", "volume", "rm", "-f", v])
     if i < NUM_RUNS: time.sleep(SLEEP)
 
