@@ -5,7 +5,7 @@
 import json, subprocess, psutil, time, math, re, logging, os, random, csv, pandas as pd, numpy as np, matplotlib.pyplot as plt
 from collections import defaultdict
 
-kem_list = ["secp256r1", "mlkem512", "p256_mlkem512"]
+kem_list = ["secp521r1", "mlkem1024","p521_mlkem1024"]
 URL = "http://52.208.59.49/plan"
 NUM_RUNS, TIMEOUT, SLEEP = 10, 300, 2
 CLIENT, CLIENT_DONE = "client", r"\[INFO\] Test completato in .* Report: /app/output/request_logs/request_client\d+\.csv"
