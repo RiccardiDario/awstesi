@@ -17,7 +17,7 @@ services:
       - ./cert-generator:/cert-generator
     stdin_open: true
     environment:
-      - SIGNATURE_ALGO=mldsa44
+      - SIGNATURE_ALGO=mldsa44_p256
     tty: true
     entrypoint: >
       sh -c "/bin/sh /cert-generator/generate_certs.sh && tail -f /dev/null"

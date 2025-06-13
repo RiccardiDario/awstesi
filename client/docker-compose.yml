@@ -14,7 +14,7 @@ services:
     stdin_open: true
     tty: true
     environment:
-      - DEFAULT_GROUPS=mlkem512
+      - DEFAULT_GROUPS=p256_mlkem512
       - SSLKEYLOGFILE=/tls_keys/tls-secrets.log
     entrypoint: ["/bin/sh", "-c", "sleep 2 && python3 /app/start_client.py && tail -f /dev/null"]
   
@@ -30,4 +30,4 @@ services:
     stdin_open: true
     tty: true
     command: >
-      tshark -i eth0 -f "tcp port 443 and host 192.168.1.8" -w /pcap/capture.pcap
+      tshark -i eth0 -f "tcp port 443 and host 52.208.59.49" -w /pcap/capture.pcap
