@@ -35,7 +35,7 @@ openssl req -x509 -new -key "$CA_KEY" -out "$CA_CERT" -nodes -days 365 \
 
 openssl_pkey "$SIGNATURE_ALGO" "$SERVER_KEY"
 openssl req -new -key "$SERVER_KEY" -out "$SERVER_CSR" \
-  -subj "/CN=54.75.53.41" \
+  -subj "/CN=52.208.59.49" \
   -addext "basicConstraints=critical,CA:FALSE" \
   -addext "keyUsage=critical,digitalSignature,keyEncipherment" \
   -addext "extendedKeyUsage=serverAuth"
