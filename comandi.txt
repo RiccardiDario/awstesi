@@ -11,8 +11,8 @@ sudo rm -rf report
 sudo rm -rf shared_plan
 
 Per copiare la cartella report da AWS sul host:
-scp -i id_rsa -r ubuntu@52.208.59.49:/home/ubuntu/server/report ./report
-scp -i id_rsa -r ubuntu@54.75.53.41:/home/ubuntu/client/report ./report
+scp -i id_rsa -r ubuntu@54.75.70.224:/home/ubuntu/server/report ./report
+scp -i id_rsa -r ubuntu@52.210.84.172:/home/ubuntu/client/report ./report
 
 Per copiare un file sulla macchina:
 scp -i id_rsa app.py ubuntu@34.249.8.248:~
@@ -23,7 +23,8 @@ Server: sudo chown -R ubuntu:ubuntu /home/ubuntu/server
 Client: sudo chown -R ubuntu:ubuntu /home/ubuntu/client
 
 Per connetterti alla macchina aws tramite ssh:
-Server: ssh -i id_rsa ubuntu@52.208.59.49
-Client: ssh -i id_rsa ubuntu@54.75.53.41
+Server: ssh -i id_rsa ubuntu@54.75.70.224
+Client: ssh -i id_rsa ubuntu@52.210.84.172
+
 
 

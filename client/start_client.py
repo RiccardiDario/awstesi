@@ -4,7 +4,7 @@ from threading import Thread, Lock; from datetime import datetime; from io impor
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s", handlers=[logging.StreamHandler()])
 OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR = "/app/output/request_logs", "/app/output/system_logs", "/app/logs/", "/app/output/request_logs/avg/"
 for d in (OUTPUT_DIR, MONITOR_DIR, TRACE_LOG_DIR, AVG_DIR): os.makedirs(d, exist_ok=True)
-BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "52.208.59.49", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
+BASE_DOMAIN, NUM_REQUESTS, active_requests, active_requests_lock, global_stats = "54.75.70.224", 500, 0, Lock(), {"cpu_usage": [], "memory_usage": []}
 CURL_COMMAND_TEMPLATE = ["curl", "--tlsv1.3", "-k", "-w", "Connect Time: %{time_connect}, TLS Handshake: %{time_appconnect}, Total Time: %{time_total}, %{http_code}\n", "-s", f"https://{BASE_DOMAIN}"]
 
 def get_next_filename(base_path, base_name, extension):
