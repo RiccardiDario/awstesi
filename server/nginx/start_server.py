@@ -9,7 +9,7 @@ RESOURCE_LOG_DIR, FILTERED_LOG_DIR = "/opt/nginx/output/resource_logs", "/opt/ng
 for d in (RESOURCE_LOG_DIR, FILTERED_LOG_DIR): os.makedirs(d, exist_ok=True)
 RESOURCE_LOG, OUTPUT_FILE = get_next_filename(RESOURCE_LOG_DIR, "monitor_nginx", "csv"), get_next_filename(FILTERED_LOG_DIR, "monitor_nginx_filtered", "csv")
 ACCESS_LOG, AVG_METRICS_FILE = "/opt/nginx/logs/access_custom.log",f"{FILTERED_LOG_DIR}/avg_nginx_usage.csv"
-EXPECTED_REQUESTS, SAMPLING_INTERVAL = 800, 0.1
+EXPECTED_REQUESTS, SAMPLING_INTERVAL = 3000, 0.1
 
 def get_kem_sig_from_logs(log_path, cert_path):
     kem_map = { "0x0200": "mlkem512", "0x0201": "mlkem768", "0x0202": "mlkem1024", "0x2f4b": "p256_mlkem512", "0x2f4c": "p384_mlkem768", "0x2f4d": "p521_mlkem1024" }

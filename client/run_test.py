@@ -85,7 +85,7 @@ def generate_graphs_from_average_per_request():
     df = pd.read_csv(output_csv)
     if df.empty:  logging.warning("Il file delle medie per richiesta è vuoto."); return
 
-    reqs_per_batch, reqs_per_plot, total_batches = 800, 100, len(df) // 800
+    reqs_per_batch, reqs_per_plot, total_batches = 3000, 100, len(df) // 3000
     metrics = ["Avg_Connect_Time(ms)", "Avg_Handshake_Time(ms)", "Avg_Total_Time(ms)", "Avg_Elapsed_Time(ms)"]
     batch_labels, boxplot_data = [], {k: [] for k in metrics}
 
